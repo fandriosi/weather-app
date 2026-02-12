@@ -46,6 +46,8 @@ public class UserService implements UserDetailsService {
 
         AppUser user = new AppUser();
         user.setUsername(request.getUsername());
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(roles);
 
@@ -74,6 +76,7 @@ public class UserService implements UserDetailsService {
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
             .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
+            .map(GrantedAuthority.class::cast)
             .toList();
 
         return new User(user.getUsername(), user.getPassword(), user.isEnabled(), true, true, true, authorities);

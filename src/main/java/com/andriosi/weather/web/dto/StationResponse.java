@@ -1,18 +1,19 @@
+import java.util.UUID;
 package com.andriosi.weather.web.dto;
 
 public class StationResponse {
 
-    private Long id;
+    private UUID id;
     private String name;
     private String location;
 
-    public StationResponse(Long id, String name, String location) {
+    public StationResponse(UUID id, String name, String location) {
         this.id = id;
         this.name = name;
         this.location = location;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

@@ -9,6 +9,7 @@ import com.andriosi.weather.web.dto.ReadingIngestRequest;
 import com.andriosi.weather.web.dto.ReadingResponse;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,7 @@ public class ReadingService implements ReadingIngestPort {
     }
 
     @Transactional(readOnly = true)
-    public List<ReadingResponse> listBySensor(Long sensorId) {
+    public List<ReadingResponse> listBySensor(UUID sensorId) {
         return readingRepository.findBySensorIdOrderByObservedAtDesc(sensorId).stream()
             .map(reading -> new ReadingResponse(
                 reading.getId(),

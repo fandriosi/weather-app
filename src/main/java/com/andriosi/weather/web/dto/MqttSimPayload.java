@@ -3,6 +3,7 @@ package com.andriosi.weather.web.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import java.util.UUID;
 
 public class MqttSimPayload {
 
@@ -10,7 +11,7 @@ public class MqttSimPayload {
     private String topic;
 
     @NotNull
-    private Long sensorId;
+    private UUID sensorId;
 
     @NotNull
     private Double value;
@@ -28,11 +29,11 @@ public class MqttSimPayload {
         this.topic = topic;
     }
 
-    public Long getSensorId() {
+    public UUID getSensorId() {
         return sensorId;
     }
 
-    public void setSensorId(Long sensorId) {
+    public void setSensorId(UUID sensorId) {
         this.sensorId = sensorId;
     }
 

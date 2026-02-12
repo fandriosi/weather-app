@@ -7,6 +7,7 @@ import com.andriosi.weather.repository.StationRepository;
 import com.andriosi.weather.web.dto.SensorRequest;
 import com.andriosi.weather.web.dto.SensorResponse;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,7 @@ public class SensorService {
     }
 
     @Transactional(readOnly = true)
-    public List<SensorResponse> list(Long stationId) {
+    public List<SensorResponse> list(UUID stationId) {
         List<Sensor> sensors = stationId == null
             ? sensorRepository.findAll()
             : sensorRepository.findByStationId(stationId);

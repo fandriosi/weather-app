@@ -5,6 +5,7 @@ import com.andriosi.weather.web.dto.SensorRequest;
 import com.andriosi.weather.web.dto.SensorResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +32,7 @@ public class SensorController {
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
     @GetMapping
-    public List<SensorResponse> list(@RequestParam(name = "stationId", required = false) Long stationId) {
+    public List<SensorResponse> list(@RequestParam(name = "stationId", required = false) UUID stationId) {
         return sensorService.list(stationId);
     }
 }

@@ -1,15 +1,17 @@
 package com.andriosi.weather.config;
 
+import java.util.Set;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.andriosi.weather.domain.AppUser;
 import com.andriosi.weather.domain.Role;
 import com.andriosi.weather.domain.RoleName;
 import com.andriosi.weather.repository.RoleRepository;
 import com.andriosi.weather.repository.UserRepository;
-import java.util.Set;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class DataInitializer {
@@ -26,6 +28,8 @@ public class DataInitializer {
                 Role adminRole = roleRepository.findByName(RoleName.ADMIN).orElseThrow();
                 AppUser admin = new AppUser();
                 admin.setUsername("admin");
+                admin.setName("Admin");
+                admin.setEmail("admin@example.com");
                 admin.setPassword(encoder.encode("admin123"));
                 admin.setRoles(Set.of(adminRole));
                 userRepository.save(admin);

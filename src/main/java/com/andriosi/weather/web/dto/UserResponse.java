@@ -1,22 +1,23 @@
 package com.andriosi.weather.web.dto;
 
 import java.util.Set;
+import java.util.UUID;
 
 public class UserResponse {
 
-    private Long id;
+    private UUID id;
     private String username;
     private boolean enabled;
     private Set<String> roles;
 
-    public UserResponse(Long id, String username, boolean enabled, Set<String> roles) {
+    public UserResponse(UUID id, String username, boolean enabled, Set<String> roles) {
         this.id = id;
         this.username = username;
         this.enabled = enabled;
         this.roles = roles;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

@@ -1,16 +1,17 @@
 package com.andriosi.weather.web.dto;
 
 import java.time.Instant;
+import java.util.UUID;
 
 public class ReadingResponse {
 
-    private Long id;
-    private Long sensorId;
+    private UUID id;
+    private UUID sensorId;
     private double value;
     private String unit;
     private Instant observedAt;
 
-    public ReadingResponse(Long id, Long sensorId, double value, String unit, Instant observedAt) {
+    public ReadingResponse(UUID id, UUID sensorId, double value, String unit, Instant observedAt) {
         this.id = id;
         this.sensorId = sensorId;
         this.value = value;
@@ -18,11 +19,11 @@ public class ReadingResponse {
         this.observedAt = observedAt;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public Long getSensorId() {
+    public UUID getSensorId() {
         return sensorId;
     }
 

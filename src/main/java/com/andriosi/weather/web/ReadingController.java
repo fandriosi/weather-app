@@ -3,6 +3,7 @@ package com.andriosi.weather.web;
 import com.andriosi.weather.service.ReadingService;
 import com.andriosi.weather.web.dto.ReadingResponse;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,7 @@ public class ReadingController {
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
     @GetMapping
-    public List<ReadingResponse> listBySensor(@RequestParam("sensorId") Long sensorId) {
+    public List<ReadingResponse> listBySensor(@RequestParam("sensorId") UUID sensorId) {
         return readingService.listBySensor(sensorId);
     }
 }
