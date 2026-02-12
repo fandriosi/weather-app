@@ -1,10 +1,10 @@
 package com.andriosi.weather.web.dto;
 
 import com.andriosi.weather.domain.RoleName;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import java.util.Set;
+import jakarta.validation.constraints.NotNull;
 
 public class UserCreateRequest {
 
@@ -21,8 +21,8 @@ public class UserCreateRequest {
     @NotBlank
     private String password;
 
-    @NotEmpty
-    private Set<RoleName> roles;
+    @NotNull
+    private RoleName role;
 
     public String getUsername() {
         return username;
@@ -56,11 +56,11 @@ public class UserCreateRequest {
         this.email = email;
     }
 
-    public Set<RoleName> getRoles() {
-        return roles;
+    public RoleName getRole() {
+        return role;
     }
 
-    public void setRoles(Set<RoleName> roles) {
-        this.roles = roles;
+    public void setRole(RoleName role) {
+        this.role = role;
     }
 }

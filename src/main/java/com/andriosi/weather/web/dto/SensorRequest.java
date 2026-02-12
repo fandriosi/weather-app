@@ -1,9 +1,12 @@
 package com.andriosi.weather.web.dto;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.andriosi.weather.domain.SensorType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
 
 public class SensorRequest {
 
@@ -14,7 +17,9 @@ public class SensorRequest {
     private SensorType type;
 
     @NotNull
-    private UUID stationId;
+    private List<UUID> stationIds;
+
+    private List<UUID> unidadeIds;
 
     public String getName() {
         return name;
@@ -32,11 +37,19 @@ public class SensorRequest {
         this.type = type;
     }
 
-    public UUID getStationId() {
-        return stationId;
+    public List<UUID> getStationIds() {
+        return stationIds;
     }
 
-    public void setStationId(UUID stationId) {
-        this.stationId = stationId;
+    public void setStationIds(List<UUID> stationIds) {
+        this.stationIds = stationIds;
+    }
+
+    public List<UUID> getUnidadeIds() {
+        return unidadeIds;
+    }
+
+    public void setUnidadeIds(List<UUID> unidadeIds) {
+        this.unidadeIds = unidadeIds;
     }
 }

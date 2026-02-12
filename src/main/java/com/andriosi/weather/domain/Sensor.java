@@ -1,5 +1,9 @@
 package com.andriosi.weather.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,9 +13,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-import java.util.UUID;
 
 @Entity
 @Table(name = "sensors")
@@ -28,9 +32,32 @@ public class Sensor {
     @Column(nullable = false)
     private SensorType type;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "station_id", nullable = false)
-    private Station station;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "sensor_unidades",
+        joinColumns = @JoinColumn(name = "sensor_id"),
+        inverseJoinColumns = @JoinColumn(name = "unidade_id")
+    )
+    private List<Unidade> unidades;
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "sensor_stations",
+        joinColumns = @JoinColumn(name = "sensor_id"),
+        inverseJoinColumns = @JoinColumn(name = "station_id")
+    )
+    private List<Station> stations;
+
+    public List<Unidade> getUnidades() {
+        if (unidades == null) {
+            unidades =  new ArrayList<>();
+        }
+        return unidades;
+    }
+
+    public void setUnidades(List<Unidade> unidades) {
+        this.unidades = unidades;
+    }
 
     public UUID getId() {
         return id;
@@ -52,11 +79,14 @@ public class Sensor {
         this.type = type;
     }
 
-    public Station getStation() {
-        return station;
+    public List<Station> getStations() {
+        if (stations == null) {
+            stations = new ArrayList<>();
+        }
+        return stations;
     }
 
-    public void setStation(Station station) {
-        this.station = station;
+    public void setStations(List<Station> stations) {
+        this.stations = stations;
     }
 }

@@ -1,20 +1,24 @@
 package com.andriosi.weather.web.dto;
 
-import com.andriosi.weather.domain.SensorType;
+import java.util.List;
 import java.util.UUID;
+
+import com.andriosi.weather.domain.SensorType;
 
 public class SensorResponse {
 
     private UUID id;
     private String name;
     private SensorType type;
-    private UUID stationId;
+    private List<UUID> stationIds;
+    private List<UUID> unidadeIds;
 
-    public SensorResponse(UUID id, String name, SensorType type, UUID stationId) {
+    public SensorResponse(UUID id, String name, SensorType type, List<UUID> stationIds, List<UUID> unidadeIds) {
         this.id = id;
         this.name = name;
         this.type = type;
-        this.stationId = stationId;
+        this.stationIds = stationIds;
+        this.unidadeIds = unidadeIds;
     }
 
     public UUID getId() {
@@ -29,7 +33,11 @@ public class SensorResponse {
         return type;
     }
 
-    public UUID getStationId() {
-        return stationId;
+    public List<UUID> getStationIds() {
+        return stationIds;
+    }
+
+    public List<UUID> getUnidadeIds() {
+        return unidadeIds;
     }
 }

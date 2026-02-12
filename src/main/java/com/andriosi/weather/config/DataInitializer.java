@@ -1,7 +1,5 @@
 package com.andriosi.weather.config;
 
-import java.util.Set;
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +29,7 @@ public class DataInitializer {
                 admin.setName("Admin");
                 admin.setEmail("admin@example.com");
                 admin.setPassword(encoder.encode("admin123"));
-                admin.setRoles(Set.of(adminRole));
+                admin.setRole(adminRole);
                 userRepository.save(admin);
             }
         };

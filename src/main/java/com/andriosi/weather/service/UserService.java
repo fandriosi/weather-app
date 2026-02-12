@@ -1,15 +1,7 @@
 package com.andriosi.weather.service;
 
-import com.andriosi.weather.domain.AppUser;
-import com.andriosi.weather.domain.Role;
-import com.andriosi.weather.domain.RoleName;
-import com.andriosi.weather.repository.RoleRepository;
-import com.andriosi.weather.repository.UserRepository;
-import com.andriosi.weather.web.dto.UserCreateRequest;
-import com.andriosi.weather.web.dto.UserResponse;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -19,6 +11,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.andriosi.weather.domain.AppUser;
+import com.andriosi.weather.domain.Role;
+import com.andriosi.weather.repository.RoleRepository;
+import com.andriosi.weather.repository.UserRepository;
+import com.andriosi.weather.web.dto.UserCreateRequest;
+import com.andriosi.weather.web.dto.UserResponse;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -39,21 +38,19 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        Set<Role> roles = request.getRoles().stream()
-            .map(roleName -> roleRepository.findByName(roleName)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found")))
-            .collect(Collectors.toSet());
+        Role role = roleRepository.findByName(request.getRole())
+            .orElseThrow(() -> new IllegalArgumentException("Role not found"));
 
         AppUser user = new AppUser();
         user.setUsername(request.getUsername());
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(roles);
+        user.setRole(role);
 
         AppUser saved = userRepository.save(user);
-        return new UserResponse(saved.getId(), saved.getUsername(), saved.isEnabled(),
-            saved.getRoles().stream().map(role -> role.getName().name()).collect(Collectors.toSet()));
+        return new UserResponse(saved.getId(), saved.getUsername(), saved.getRole().getName().name(), user.getEmail(), saved.isEnabled(),
+            user.getRole().getName().name());
     }
 
     @Transactional(readOnly = true)
@@ -62,8 +59,10 @@ public class UserService implements UserDetailsService {
             .map(user -> new UserResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getName(),
+                user.getEmail(),
                 user.isEnabled(),
-                user.getRoles().stream().map(role -> role.getName().name()).collect(Collectors.toSet())
+                user.getRole().getName().name()
             ))
             .toList();
     }
@@ -74,11 +73,8 @@ public class UserService implements UserDetailsService {
         AppUser user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
-            .map(GrantedAuthority.class::cast)
-            .toList();
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getName().name());
 
-        return new User(user.getUsername(), user.getPassword(), user.isEnabled(), true, true, true, authorities);
+        return new User(user.getUsername(), user.getPassword(), user.isEnabled(), true, true, true, List.of(authority));
     }
 }
