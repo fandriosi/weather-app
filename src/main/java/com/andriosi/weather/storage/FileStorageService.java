@@ -250,4 +250,9 @@ public class FileStorageService {
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
     }
+
+    public void deleteFile(String storageKey, StorageType storageType) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
+    }
 }

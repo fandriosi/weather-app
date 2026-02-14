@@ -49,6 +49,17 @@ public class SensorFile {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "is_image")
+    private Boolean isImage = false;
+
+    public Boolean getIsImage() {
+        return isImage;
+    }
+
+    public void setIsImage(Boolean isImage) {
+        this.isImage = isImage;
+    }
+
     public UUID getId() {
         return id;
     }

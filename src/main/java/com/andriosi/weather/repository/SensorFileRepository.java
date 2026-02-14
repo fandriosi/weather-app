@@ -9,9 +9,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.andriosi.weather.domain.SensorFile;
 
 public interface SensorFileRepository extends JpaRepository<SensorFile, UUID> {
+
     List<SensorFile> findBySensorId(UUID sensorId);
 
     List<SensorFile> findBySensorIdIn(List<UUID> sensorIds);
 
-    Optional<SensorFile> findByIdAndSensorId(UUID id, UUID sensorId);
+    Optional<SensorFile> findBySensorIdAndIsImageTrue(UUID sensorId);
+
+    Optional<SensorFile> findByIdAndSensorId(UUID fileId, UUID sensorId);
+
 }

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,26 +53,32 @@ public class SensorController {
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SensorResponse createWithFiles(@Valid @RequestPart(value = "data", required = false) SensorRequest request,
-                                          @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+    public SensorResponse createWithFiles(
+            @Valid @RequestPart(value = "data", required = false) SensorRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+
         SensorRequest resolved = requireRequestPart(request);
-        return sensorService.create(resolved, files);
+        return sensorService.create(resolved, image, files);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public SensorResponse update(@PathVariable("id") UUID id,
-                                 @Valid @RequestBody SensorRequest request) {
-        return sensorService.update(id, request, List.of());
+            @Valid @RequestBody SensorRequest request) {
+        return sensorService.update(id, request, null, List.of());
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SensorResponse updateWithFiles(@PathVariable("id") UUID id,
-                                          @Valid @RequestPart(value = "data", required = false) SensorRequest request,
-                                          @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+    public SensorResponse updateWithFiles(
+            @PathVariable("id") UUID id,
+            @Valid @RequestPart(value = "data", required = false) SensorRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+
         SensorRequest resolved = requireRequestPart(request);
-        return sensorService.update(id, resolved, files);
+        return sensorService.update(id, resolved, image, files);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
@@ -84,17 +91,17 @@ public class SensorController {
     @GetMapping(path = "/{sensorId}/files/{fileId}")
     public ResponseEntity<?> downloadFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
         SensorFile file = sensorService.findFile(sensorId, fileId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor file not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor file not found"));
 
         if (file.getStorageType() == StorageType.S3) {
             URI url = fileStorageService.createPresignedDownloadUrl(
-                file.getStorageKey(),
-                file.getContentType(),
-                file.getOriginalName()
+                    file.getStorageKey(),
+                    file.getContentType(),
+                    file.getOriginalName()
             );
             return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
-                .location(url)
-                .build();
+                    .location(url)
+                    .build();
         }
 
         Resource resource = fileStorageService.loadLocalResource(file.getStorageKey());
@@ -103,14 +110,14 @@ public class SensorController {
         }
 
         String disposition = ContentDisposition.attachment()
-            .filename(file.getOriginalName())
-            .build()
-            .toString();
+                .filename(file.getOriginalName())
+                .build()
+                .toString();
 
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(file.getContentType()))
-            .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-            .body(resource);
+                .contentType(MediaType.parseMediaType(file.getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .body(resource);
     }
 
     private SensorRequest requireRequestPart(SensorRequest request) {
@@ -118,8 +125,16 @@ public class SensorController {
             return request;
         }
         throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "Missing multipart part 'data'"
+                HttpStatus.BAD_REQUEST,
+                "Missing multipart part 'data'"
         );
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
+    @DeleteMapping(path = "/{sensorId}/files/{fileId}")
+    public ResponseEntity<Void> deleteFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
+        sensorService.deleteFile(sensorId, fileId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -16,6 +16,12 @@ public class SensorRequest {
     @NotNull
     private SensorType type;
 
+    private String description;
+
+    private String code;
+
+    private SensorStatus status;
+
     private List<UUID> unidadeIds;
 
     public String getName() {
@@ -41,4 +47,30 @@ public class SensorRequest {
     public void setUnidadeIds(List<UUID> unidadeIds) {
         this.unidadeIds = unidadeIds;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public SensorStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SensorStatus status) {
+        this.status = status;
+    }
+
+    
 }
