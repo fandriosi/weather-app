@@ -1,10 +1,10 @@
 package com.andriosi.weather.service;
 
 import com.andriosi.weather.domain.Reading;
-import com.andriosi.weather.domain.Sensor;
+import com.andriosi.weather.domain.Station;
 import com.andriosi.weather.port.ReadingIngestPort;
 import com.andriosi.weather.repository.ReadingRepository;
-import com.andriosi.weather.repository.SensorRepository;
+import com.andriosi.weather.repository.StationRepository;
 import com.andriosi.weather.web.dto.ReadingIngestRequest;
 import com.andriosi.weather.web.dto.ReadingResponse;
 import java.time.Instant;
@@ -17,36 +17,36 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReadingService implements ReadingIngestPort {
 
     private final ReadingRepository readingRepository;
-    private final SensorRepository sensorRepository;
+    private final StationRepository stationRepository;
 
-    public ReadingService(ReadingRepository readingRepository, SensorRepository sensorRepository) {
+    public ReadingService(ReadingRepository readingRepository, StationRepository stationRepository) {
         this.readingRepository = readingRepository;
-        this.sensorRepository = sensorRepository;
+        this.stationRepository = stationRepository; 
     }
 
     @Override
     @Transactional
     public ReadingResponse ingest(ReadingIngestRequest request) {
-        Sensor sensor = sensorRepository.findById(request.getSensorId())
-            .orElseThrow(() -> new IllegalArgumentException("Sensor not found"));
+        Station station = stationRepository.findById(request.getStationId())
+            .orElseThrow(() -> new IllegalArgumentException("Station not found"));
 
         Reading reading = new Reading();
-        reading.setSensor(sensor);
+        reading.setStation(station);
         reading.setValue(request.getValue());
         reading.setUnit(request.getUnit());
         reading.setObservedAt(request.getObservedAt() != null ? request.getObservedAt() : Instant.now());
         reading.setCreatedAt(Instant.now());
 
         Reading saved = readingRepository.save(reading);
-        return new ReadingResponse(saved.getId(), sensor.getId(), saved.getValue(), saved.getUnit(), saved.getObservedAt());
+        return new ReadingResponse(saved.getId(), station.getId(), saved.getValue(), saved.getUnit(), saved.getObservedAt());
     }
 
     @Transactional(readOnly = true)
-    public List<ReadingResponse> listBySensor(UUID sensorId) {
-        return readingRepository.findBySensorIdOrderByObservedAtDesc(sensorId).stream()
+    public List<ReadingResponse> listByStation(UUID stationId) {
+        return readingRepository.findByStationIdOrderByObservedAtDesc(stationId).stream()
             .map(reading -> new ReadingResponse(
                 reading.getId(),
-                reading.getSensor().getId(),
+                stationId,
                 reading.getValue(),
                 reading.getUnit(),
                 reading.getObservedAt()

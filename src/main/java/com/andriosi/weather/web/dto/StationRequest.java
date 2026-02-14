@@ -14,6 +14,17 @@ public class StationRequest {
     @NotNull
     private Double longitude;
 
+    @NotNull
+    private String sensorId;
+
+    public String getSensorId() {
+        return sensorId;
+    }
+
+    public void setSensorId(String sensorId) {
+        this.sensorId = sensorId;
+    }
+
     public String getName() {
         return name;
     }

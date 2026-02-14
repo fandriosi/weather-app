@@ -22,7 +22,7 @@ public class ReadingController {
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
     @GetMapping
-    public List<ReadingResponse> listBySensor(@RequestParam("sensorId") UUID sensorId) {
-        return readingService.listBySensor(sensorId);
+    public List<ReadingResponse> listByStation(@RequestParam("stationId") UUID stationId) {
+        return readingService.listByStation(stationId);
     }
 }

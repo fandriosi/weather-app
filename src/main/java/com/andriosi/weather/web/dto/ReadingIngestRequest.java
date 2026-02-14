@@ -18,12 +18,12 @@ public class ReadingIngestRequest {
 
     private Instant observedAt;
 
-    public UUID getSensorId() {
+    public UUID getStationId() {
         return sensorId;
     }
 
-    public void setSensorId(UUID sensorId) {
-        this.sensorId = sensorId;
+    public void setStationId(UUID stationId) {
+        this.sensorId = stationId;
     }
 
     public Double getValue() {

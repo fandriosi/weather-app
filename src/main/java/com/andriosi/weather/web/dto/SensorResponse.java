@@ -10,15 +10,19 @@ public class SensorResponse {
     private UUID id;
     private String name;
     private SensorType type;
-    private List<UUID> stationIds;
     private List<UUID> unidadeIds;
+    private List<SensorFileResponse> files;
 
-    public SensorResponse(UUID id, String name, SensorType type, List<UUID> stationIds, List<UUID> unidadeIds) {
+    public SensorResponse(UUID id,
+                          String name,
+                          SensorType type,
+                          List<UUID> unidadeIds,
+                          List<SensorFileResponse> files) {
         this.id = id;
         this.name = name;
         this.type = type;
-        this.stationIds = stationIds;
         this.unidadeIds = unidadeIds;
+        this.files = files;
     }
 
     public UUID getId() {
@@ -33,11 +37,11 @@ public class SensorResponse {
         return type;
     }
 
-    public List<UUID> getStationIds() {
-        return stationIds;
-    }
-
     public List<UUID> getUnidadeIds() {
         return unidadeIds;
+    }
+
+    public List<SensorFileResponse> getFiles() {
+        return files;
     }
 }

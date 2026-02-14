@@ -11,10 +11,10 @@ public class MqttSimPayload {
     private String topic;
 
     @NotNull
-    private UUID sensorId;
+    private Double value;
 
     @NotNull
-    private Double value;
+    private UUID stationId;
 
     @NotBlank
     private String unit;
@@ -28,13 +28,9 @@ public class MqttSimPayload {
     public void setTopic(String topic) {
         this.topic = topic;
     }
-
-    public UUID getSensorId() {
-        return sensorId;
-    }
-
-    public void setSensorId(UUID sensorId) {
-        this.sensorId = sensorId;
+  
+    public void setStationId(UUID stationId) {
+        this.stationId = stationId;
     }
 
     public Double getValue() {
@@ -59,5 +55,10 @@ public class MqttSimPayload {
 
     public void setObservedAt(Instant observedAt) {
         this.observedAt = observedAt;
+    }
+
+    public UUID getStationId() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getStationId'");
     }
 }

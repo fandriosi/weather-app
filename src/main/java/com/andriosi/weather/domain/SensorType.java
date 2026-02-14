@@ -6,5 +6,6 @@ public enum SensorType {
     PRESSURE,
     WIND_SPEED,
     WIND_DIRECTION,
-    RAINFALL
+    RAINFALL,
+    MULTI_FUNCTION
 }

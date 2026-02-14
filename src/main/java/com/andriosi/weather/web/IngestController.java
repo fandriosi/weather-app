@@ -31,7 +31,7 @@ public class IngestController {
     @PostMapping("/mqtt-sim")
     public ReadingResponse ingestMqttSim(@Valid @RequestBody MqttSimPayload payload) {
         ReadingIngestRequest request = new ReadingIngestRequest();
-        request.setSensorId(payload.getSensorId());
+        request.setStationId(payload.getStationId());
         request.setValue(payload.getValue());
         request.setUnit(payload.getUnit());
         request.setObservedAt(payload.getObservedAt());

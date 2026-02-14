@@ -39,14 +39,6 @@ public class Sensor {
         inverseJoinColumns = @JoinColumn(name = "unidade_id")
     )
     private List<Unidade> unidades;
-    
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "sensor_stations",
-        joinColumns = @JoinColumn(name = "sensor_id"),
-        inverseJoinColumns = @JoinColumn(name = "station_id")
-    )
-    private List<Station> stations;
 
     public List<Unidade> getUnidades() {
         if (unidades == null) {
@@ -77,16 +69,5 @@ public class Sensor {
 
     public void setType(SensorType type) {
         this.type = type;
-    }
-
-    public List<Station> getStations() {
-        if (stations == null) {
-            stations = new ArrayList<>();
-        }
-        return stations;
-    }
-
-    public void setStations(List<Station> stations) {
-        this.stations = stations;
     }
 }

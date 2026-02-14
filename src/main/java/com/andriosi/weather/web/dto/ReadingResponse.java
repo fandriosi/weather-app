@@ -6,14 +6,14 @@ import java.util.UUID;
 public class ReadingResponse {
 
     private UUID id;
-    private UUID sensorId;
+    private UUID stationId;
     private double value;
     private String unit;
     private Instant observedAt;
 
-    public ReadingResponse(UUID id, UUID sensorId, double value, String unit, Instant observedAt) {
+    public ReadingResponse(UUID id, UUID stationId, double value, String unit, Instant observedAt) {
         this.id = id;
-        this.sensorId = sensorId;
+        this.stationId = stationId;
         this.value = value;
         this.unit = unit;
         this.observedAt = observedAt;
@@ -23,8 +23,8 @@ public class ReadingResponse {
         return id;
     }
 
-    public UUID getSensorId() {
-        return sensorId;
+    public UUID getStationId() {
+        return stationId;
     }
 
     public double getValue() {

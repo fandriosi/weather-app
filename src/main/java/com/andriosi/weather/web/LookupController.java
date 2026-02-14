@@ -25,4 +25,5 @@ public class LookupController {
             .map(Enum::name)
             .toList();
     }
+
 }

@@ -16,9 +16,6 @@ public class SensorRequest {
     @NotNull
     private SensorType type;
 
-    @NotNull
-    private List<UUID> stationIds;
-
     private List<UUID> unidadeIds;
 
     public String getName() {
@@ -36,15 +33,7 @@ public class SensorRequest {
     public void setType(SensorType type) {
         this.type = type;
     }
-
-    public List<UUID> getStationIds() {
-        return stationIds;
-    }
-
-    public void setStationIds(List<UUID> stationIds) {
-        this.stationIds = stationIds;
-    }
-
+    
     public List<UUID> getUnidadeIds() {
         return unidadeIds;
     }

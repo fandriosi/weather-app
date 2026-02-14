@@ -21,8 +21,8 @@ public class Reading {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "sensor_id", nullable = false)
-    private Sensor sensor;
+    @JoinColumn(name = "station_id", nullable = false)
+    private Station station;
 
     @Column(name = "reading_value", nullable = false)
     private double value;
@@ -40,12 +40,12 @@ public class Reading {
         return id;
     }
 
-    public Sensor getSensor() {
-        return sensor;
+    public Station getStation() {
+        return station;
     }
 
-    public void setSensor(Sensor sensor) {
-        this.sensor = sensor;
+    public void setStation(Station station) {
+        this.station = station;
     }
 
     public double getValue() {

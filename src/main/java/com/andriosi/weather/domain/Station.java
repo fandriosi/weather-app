@@ -1,8 +1,7 @@
 package com.andriosi.weather.domain;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.ManyToAny;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,7 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -30,11 +29,19 @@ public class Station {
     @Column(nullable = false)
     private Double longitude;
 
-    @ManyToMany(mappedBy = "stations", fetch = FetchType.LAZY)
-    private List<Sensor> sensors;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Sensor sensor;
 
     public UUID getId() {
         return id;
+    }
+
+    public Sensor getSensor() {
+        return sensor;
+    }
+
+    public void setSensor(Sensor sensor) {
+        this.sensor = sensor;
     }
 
     public String getName() {
@@ -61,14 +68,4 @@ public class Station {
         this.longitude = longitude;
     }
 
-    public List<Sensor> getSensors() {
-        if (sensors == null) {
-            sensors = new ArrayList<>();
-        }
-        return sensors;
-    }
-
-    public void setSensors(List<Sensor> sensors) {
-        this.sensors = sensors;
-    }
 }
