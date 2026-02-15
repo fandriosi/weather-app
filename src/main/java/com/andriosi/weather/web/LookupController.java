@@ -27,10 +27,8 @@ public class LookupController {
     }
 
     @GetMapping("/sensor-types")
-    public List<String> listSensorTypes() {
-        return sensorTypeRepository.findAll().stream()
-                .map(SensorTypeEntity::getName)
-                .toList();
+    public List<SensorTypeEntity> listSensorTypes() {
+        return sensorTypeRepository.findAll();
     }
 
 }

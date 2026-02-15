@@ -1,4 +1,4 @@
-c-- Adicionar coluna role_id na tabela users
+-- Adicionar coluna role_id na tabela users
 ALTER TABLE users ADD COLUMN role_id UUID;
 
 -- Migrar dados existentes (pegar o primeiro role de cada usuário)
