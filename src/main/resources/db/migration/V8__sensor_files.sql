@@ -8,6 +8,7 @@ CREATE TABLE sensor_files (
     storage_key VARCHAR(512) NOT NULL,
     storage_url VARCHAR(512),
     created_at TIMESTAMP NOT NULL,
+    is_image BOOLEAN NOT NULL,
     CONSTRAINT fk_sensor_files_sensor FOREIGN KEY (sensor_id) REFERENCES sensors(id)
 );
 

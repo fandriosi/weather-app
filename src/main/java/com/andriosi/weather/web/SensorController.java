@@ -2,6 +2,7 @@ package com.andriosi.weather.web;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
@@ -18,16 +19,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.andriosi.weather.domain.SensorFile;
 import com.andriosi.weather.service.SensorService;
 import com.andriosi.weather.storage.FileStorageService;
-import com.andriosi.weather.storage.StorageType;
 import com.andriosi.weather.web.dto.SensorRequest;
 import com.andriosi.weather.web.dto.SensorResponse;
 
@@ -79,46 +77,7 @@ public class SensorController {
 
         SensorRequest resolved = requireRequestPart(request);
         return sensorService.update(id, resolved, image, files);
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
-    @GetMapping
-    public List<SensorResponse> list(@RequestParam(name = "stationId", required = false) UUID stationId) {
-        return sensorService.list(stationId);
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN','OPERATOR','READER')")
-    @GetMapping(path = "/{sensorId}/files/{fileId}")
-    public ResponseEntity<?> downloadFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
-        SensorFile file = sensorService.findFile(sensorId, fileId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor file not found"));
-
-        if (file.getStorageType() == StorageType.S3) {
-            URI url = fileStorageService.createPresignedDownloadUrl(
-                    file.getStorageKey(),
-                    file.getContentType(),
-                    file.getOriginalName()
-            );
-            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
-                    .location(url)
-                    .build();
-        }
-
-        Resource resource = fileStorageService.loadLocalResource(file.getStorageKey());
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sensor file not found");
-        }
-
-        String disposition = ContentDisposition.attachment()
-                .filename(file.getOriginalName())
-                .build()
-                .toString();
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(file.getContentType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-                .body(resource);
-    }
+    } 
 
     private SensorRequest requireRequestPart(SensorRequest request) {
         if (request != null) {

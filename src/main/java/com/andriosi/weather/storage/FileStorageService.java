@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -22,12 +24,14 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -51,8 +55,10 @@ public class FileStorageService {
         }
 
         return switch (properties.getType()) {
-            case S3 -> storeOnS3(sensorId, files);
-            case LOCAL -> storeOnLocal(sensorId, files);
+            case S3 ->
+                storeOnS3(sensorId, files);
+            case LOCAL ->
+                storeOnLocal(sensorId, files);
         };
     }
 
@@ -67,24 +73,24 @@ public class FileStorageService {
     }
 
     public URI createPresignedDownloadUrl(String storageKey,
-                                          String contentType,
-                                          String originalName) {
+            String contentType,
+            String originalName) {
         StorageProperties.S3 s3 = properties.getS3();
         String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
         String region = requireValue(s3.getRegion(), "S3 region is required");
         String disposition = buildContentDisposition(originalName);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-            .bucket(bucket)
-            .key(storageKey)
-            .responseContentType(normalizeContentType(contentType))
-            .responseContentDisposition(disposition)
-            .build();
+                .bucket(bucket)
+                .key(storageKey)
+                .responseContentType(normalizeContentType(contentType))
+                .responseContentDisposition(disposition)
+                .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-            .signatureDuration(DEFAULT_PRESIGN_DURATION)
-            .getObjectRequest(getObjectRequest)
-            .build();
+                .signatureDuration(DEFAULT_PRESIGN_DURATION)
+                .getObjectRequest(getObjectRequest)
+                .build();
 
         return URI.create(getS3Presigner(region).presignGetObject(presignRequest).url().toString());
     }
@@ -116,16 +122,103 @@ public class FileStorageService {
 
             String storageKey = prefix + "/" + fileName;
             results.add(new StoredFileInfo(
-                StorageType.LOCAL,
-                storageKey,
-                null,
-                originalName,
-                contentType,
-                file.getSize()
+                    StorageType.LOCAL,
+                    storageKey,
+                    null,
+                    originalName,
+                    contentType,
+                    file.getSize()
             ));
         }
 
         return results;
+    }
+
+    public void deleteFile(String storageKey, StorageType storageType) {
+        if (storageKey == null || storageKey.isEmpty()) {
+            throw new IllegalArgumentException("Storage key is required");
+        }
+
+        switch (storageType) {
+            case S3 ->
+                deleteFromS3(storageKey);
+            case LOCAL ->
+                deleteFromLocal(storageKey);
+        }
+    }
+
+    public Resource getFile(String storageKey, StorageType storageType) {
+        if (storageKey == null || storageKey.isEmpty()) {
+            throw new IllegalArgumentException("Storage key is required");
+        }
+
+        return switch (storageType) {
+            case S3 -> {
+                StoredFileInfo fileInfo = getS3FileInfo(storageKey);
+                yield loadS3ObjectAsResource(fileInfo);
+            }
+            case LOCAL ->
+                loadLocalResource(storageKey);
+        };
+    }
+
+    private Resource loadS3ObjectAsResource(StoredFileInfo fileInfo) {
+        StorageProperties.S3 s3 = properties.getS3();
+        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
+        String region = requireValue(s3.getRegion(), "S3 region is required");
+
+        try {
+            ResponseBytes<GetObjectResponse> bytes = getS3Client(region)
+                    .getObjectAsBytes(builder -> builder.bucket(bucket).key(fileInfo.getStorageKey()));
+            return new ByteArrayResource(bytes.asByteArray());
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to load file from S3", ex);
+        }
+    }
+
+    private void deleteFromS3(String storageKey) {
+        StorageProperties.S3 s3 = properties.getS3();
+        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
+        String region = requireValue(s3.getRegion(), "S3 region is required");
+
+        try {
+            getS3Client(region).deleteObject(builder -> builder.bucket(bucket).key(storageKey));
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to delete file from S3", ex);
+        }
+    }
+
+    private StoredFileInfo getS3FileInfo(String storageKey) {
+        StorageProperties.S3 s3 = properties.getS3();
+        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
+        String region = requireValue(s3.getRegion(), "S3 region is required");
+
+        try {
+            var headObject = getS3Client(region).headObject(builder -> builder.bucket(bucket).key(storageKey));
+            String originalName = headObject.metadata().getOrDefault("original-name", Paths.get(storageKey).getFileName().toString());
+            return new StoredFileInfo(
+                    StorageType.S3,
+                    storageKey,
+                    "s3://" + bucket + "/" + storageKey,
+                    originalName,
+                    headObject.contentType(),
+                    headObject.contentLength()
+            );
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to get file info from S3", ex);
+        }
+    }
+
+    private void deleteFromLocal(String storageKey) {
+        StorageProperties.Local local = properties.getLocal();
+        String basePath = requireValue(local.getBasePath(), "Local base path is required");
+        Path filePath = Paths.get(basePath).resolve(storageKey).normalize();
+
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to delete file from local storage", ex);
+        }
     }
 
     private List<StoredFileInfo> storeOnS3(UUID sensorId, List<MultipartFile> files) {
@@ -147,11 +240,11 @@ public class FileStorageService {
             String contentType = normalizeContentType(file.getContentType());
 
             PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(contentType)
-                .metadata(java.util.Map.of("original-name", originalName))
-                .build();
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType)
+                    .metadata(java.util.Map.of("original-name", originalName))
+                    .build();
 
             try (InputStream inputStream = file.getInputStream()) {
                 client.putObject(request, RequestBody.fromInputStream(inputStream, file.getSize()));
@@ -160,12 +253,12 @@ public class FileStorageService {
             }
 
             results.add(new StoredFileInfo(
-                StorageType.S3,
-                key,
-                "s3://" + bucket + "/" + key,
-                originalName,
-                contentType,
-                file.getSize()
+                    StorageType.S3,
+                    key,
+                    "s3://" + bucket + "/" + key,
+                    originalName,
+                    contentType,
+                    file.getSize()
             ));
         }
 
@@ -180,8 +273,8 @@ public class FileStorageService {
         synchronized (this) {
             if (s3Client == null) {
                 S3ClientBuilder builder = S3Client.builder()
-                    .region(Region.of(region))
-                    .credentialsProvider(resolveCredentials());
+                        .region(Region.of(region))
+                        .credentialsProvider(resolveCredentials());
                 s3Client = builder.build();
             }
         }
@@ -197,9 +290,9 @@ public class FileStorageService {
         synchronized (this) {
             if (s3Presigner == null) {
                 s3Presigner = S3Presigner.builder()
-                    .region(Region.of(region))
-                    .credentialsProvider(resolveCredentials())
-                    .build();
+                        .region(Region.of(region))
+                        .credentialsProvider(resolveCredentials())
+                        .build();
             }
         }
 
@@ -249,10 +342,5 @@ public class FileStorageService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
-    }
-
-    public void deleteFile(String storageKey, StorageType storageType) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
     }
 }

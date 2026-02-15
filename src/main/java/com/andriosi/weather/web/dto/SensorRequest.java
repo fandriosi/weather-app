@@ -18,8 +18,6 @@ public class SensorRequest {
 
     private String description;
 
-    private String code;
-
     private SensorStatus status;
 
     private List<UUID> unidadeIds;
@@ -54,14 +52,6 @@ public class SensorRequest {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     public SensorStatus getStatus() {

@@ -8,167 +8,67 @@ import com.andriosi.weather.domain.SensorType;
 public class SensorResponse {
 
     private UUID id;
-    private String code;
     private String description;
     private SensorType type;
     private SensorStatus status;
-    private UUID stationId;
-    private String stationName;
-
-    // IMPORTANTE: Dados da imagem
     private ImageData image;
-
-    // IMPORTANTE: Lista de arquivos anexados
+    private List<UUID> unidadesIds;
     private List<FileData> files;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Classe interna para dados da imagem
-    public static class ImageData {
-
-        private UUID id;
-        private String url;              // URL para download/visualização
-        private String originalName;     // Nome original do arquivo
-        private String contentType;      // image/jpeg, image/png, etc
-        private Long size;               // Tamanho em bytes
-        private LocalDateTime uploadedAt;
-
-        public ImageData(UUID id2, String fileUrl, String originalName2, String contentType2, long size2,
-                LocalDateTime localDateTime) {
-            //TODO Auto-generated constructor stub
-        }
-
-        // Getters e Setters
-        public UUID getId() {
-            return id;
-        }
-
-        public void setId(UUID id) {
-            this.id = id;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public String getOriginalName() {
-            return originalName;
-        }
-
-        public void setOriginalName(String originalName) {
-            this.originalName = originalName;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
-
-        public Long getSize() {
-            return size;
-        }
-
-        public void setSize(Long size) {
-            this.size = size;
-        }
-
-        public LocalDateTime getUploadedAt() {
-            return uploadedAt;
-        }
-
-        public void setUploadedAt(LocalDateTime uploadedAt) {
-            this.uploadedAt = uploadedAt;
-        }
+    // Construtor completo
+    public SensorResponse(
+            UUID id,
+            String description,
+            SensorType type,
+            SensorStatus status,
+            List<UUID> unidadesIds,
+            ImageData image,
+            List<FileData> files,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt) {
+        this.id = id;
+        this.description = description;
+        this.type = type;
+        this.status = status;
+        this.image = image;
+        this.unidadesIds = unidadesIds;
+        this.files = files;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
-    // Classe interna para dados dos arquivos
-    public static class FileData {
+    // Records aninhados
+    public record ImageData(
+            UUID id,
+            String url,
+            String originalName,
+            String contentType,
+            long size,
+            LocalDateTime uploadedAt
+            ) {
 
-        private UUID id;
-        private String url;              // URL para download
-        private String originalName;     // Nome original do arquivo
-        private String contentType;      // application/pdf, etc
-        private Long size;               // Tamanho em bytes
-        private LocalDateTime uploadedAt;
-
-        public FileData(UUID id2, String fileUrl, String originalName2, String contentType2, long size2,
-                LocalDateTime localDateTime) {
-            //TODO Auto-generated constructor stub
-        }
-
-        // Getters e Setters
-        public UUID getId() {
-            return id;
-        }
-
-        public void setId(UUID id) {
-            this.id = id;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public String getOriginalName() {
-            return originalName;
-        }
-
-        public void setOriginalName(String originalName) {
-            this.originalName = originalName;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
-
-        public Long getSize() {
-            return size;
-        }
-
-        public void setSize(Long size) {
-            this.size = size;
-        }
-
-        public LocalDateTime getUploadedAt() {
-            return uploadedAt;
-        }
-
-        public void setUploadedAt(LocalDateTime uploadedAt) {
-            this.uploadedAt = uploadedAt;
-        }
     }
 
-    // Getters e Setters principais
+    public record FileData(
+            UUID id,
+            String url,
+            String originalName,
+            String contentType,
+            long size,
+            LocalDateTime uploadedAt
+            ) {
+
+    }
+
+    // Getters e Setters
     public UUID getId() {
         return id;
     }
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     public String getDescription() {
@@ -195,22 +95,6 @@ public class SensorResponse {
         this.status = status;
     }
 
-    public UUID getStationId() {
-        return stationId;
-    }
-
-    public void setStationId(UUID stationId) {
-        this.stationId = stationId;
-    }
-
-    public String getStationName() {
-        return stationName;
-    }
-
-    public void setStationName(String stationName) {
-        this.stationName = stationName;
-    }
-
     public ImageData getImage() {
         return image;
     }
@@ -225,6 +109,14 @@ public class SensorResponse {
 
     public void setFiles(List<FileData> files) {
         this.files = files;
+    }
+
+    public List<UUID> getUnidadesIds() {
+        return unidadesIds;
+    }
+
+    public void setUnidadesIds(List<UUID> unidadesIds) {
+        this.unidadesIds = unidadesIds;
     }
 
     public LocalDateTime getCreatedAt() {

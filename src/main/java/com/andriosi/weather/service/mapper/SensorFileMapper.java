@@ -8,44 +8,42 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import com.andriosi.weather.domain.SensorFile;
-import com.andriosi.weather.web.dto.SensorResponse.FileData;
-import com.andriosi.weather.web.dto.SensorResponse.ImageData;
+import com.andriosi.weather.web.dto.SensorResponse;
 
 @Component
 public class SensorFileMapper {
 
-    public ImageData toImageData(SensorFile file, UUID sensorId) {
+    public SensorResponse.ImageData toImageData(SensorFile file, UUID sensorId) {
         if (file == null) {
             return null;
         }
-        return new ImageData(
-            file.getId(),
-            buildFileUrl(sensorId, file.getId()),
-            file.getOriginalName(),
-            file.getContentType(),
-            file.getSize(),
-            toLocalDateTime(file.getCreatedAt())
+        return new SensorResponse.ImageData(
+                file.getId(),
+                buildFileUrl(sensorId, file.getId()),
+                file.getOriginalName(),
+                file.getContentType(),
+                file.getSize(),
+                toLocalDateTime(file.getCreatedAt())
         );
     }
 
-    public FileData toFileData(SensorFile file, UUID sensorId) {
-        return new FileData(
-            file.getId(),
-            buildFileUrl(sensorId, file.getId()),
-            file.getOriginalName(),
-            file.getContentType(),
-            file.getSize(),
-            toLocalDateTime(file.getCreatedAt())
+    public SensorResponse.FileData toFileData(SensorFile file, UUID sensorId) {
+        return new SensorResponse.FileData(
+                file.getId(),
+                buildFileUrl(sensorId, file.getId()), file.getOriginalName(),
+                file.getContentType(),
+                file.getSize(),
+                toLocalDateTime(file.getCreatedAt())
         );
     }
 
-    public List<FileData> toFileDataList(List<SensorFile> files, UUID sensorId) {
+    public List<SensorResponse.FileData> toFileDataList(List<SensorFile> files, UUID sensorId) {
         if (files == null || files.isEmpty()) {
             return List.of();
         }
         return files.stream()
-            .map(file -> toFileData(file, sensorId))
-            .toList();
+                .map(file -> toFileData(file, sensorId))
+                .toList();
     }
 
     private String buildFileUrl(UUID sensorId, UUID fileId) {
