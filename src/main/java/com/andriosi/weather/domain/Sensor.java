@@ -42,8 +42,7 @@ public class Sensor {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SensorStatus status;
-
-    @Column(nullable = false, updatable = false)
+    
     @Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 

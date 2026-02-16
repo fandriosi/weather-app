@@ -70,4 +70,8 @@ public class Unidade {
     public void setSensors(List<Sensor> sensors) {
         this.sensors = sensors;
     }
+    public void setSymbol(String string) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setSymbol'");
+    }
 }

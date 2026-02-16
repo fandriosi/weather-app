@@ -3,6 +3,8 @@ package com.andriosi.weather.web;
 import com.andriosi.weather.domain.RoleName;
 import com.andriosi.weather.domain.SensorTypeEntity;
 import com.andriosi.weather.repository.SensorTypeRepository;
+import com.andriosi.weather.web.dto.SensorStatus;
+
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,4 +33,10 @@ public class LookupController {
         return sensorTypeRepository.findAll();
     }
 
+    @GetMapping("/sensor-statuses")
+    public List<String> listSensorStatusList() {
+        return Arrays.stream(SensorStatus.values())
+                .map(Enum::name)
+                .toList();
+    }
 }

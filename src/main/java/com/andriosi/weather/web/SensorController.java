@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.andriosi.weather.service.SensorService;
-import com.andriosi.weather.storage.FileStorageService;
 import com.andriosi.weather.web.dto.SensorRequest;
 import com.andriosi.weather.web.dto.SensorResponse;
 
@@ -36,11 +35,9 @@ import jakarta.validation.Valid;
 public class SensorController {
 
     private final SensorService sensorService;
-    private final FileStorageService fileStorageService;
 
-    public SensorController(SensorService sensorService, FileStorageService fileStorageService) {
+    public SensorController(SensorService sensorService) {
         this.sensorService = sensorService;
-        this.fileStorageService = fileStorageService;
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
