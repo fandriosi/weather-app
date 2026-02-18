@@ -293,4 +293,9 @@ public class SensorService {
                 .orElseThrow(() -> new IllegalArgumentException("Sensor not found"));
         return toResponse(sensor);
     }
+
+    public void deleteSensor(UUID sensorId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteSensor'");
+    }
 }
