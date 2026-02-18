@@ -48,7 +48,7 @@ public class Sensor {
 
     @Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
-
+    
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "sensor_unidades",

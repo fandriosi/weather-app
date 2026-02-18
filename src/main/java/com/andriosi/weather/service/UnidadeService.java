@@ -28,7 +28,7 @@ public class UnidadeService {
         unidade.setSimbolo(request.getSimbolo());
         unidade.setParametro(buildParametro(request.getNome(), request.getSimbolo()));
         Unidade saved = unidadeRepository.save(unidade);
-        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo(), saved.getParametro());
+        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo()); 
     }
 
     @Transactional(readOnly = true)
@@ -36,9 +36,8 @@ public class UnidadeService {
         return unidadeRepository.findAll(pageable)
             .map(unidade -> new UnidadeResponse(
                 unidade.getId(),
-                unidade.getNome(),
-                unidade.getSimbolo(),
-                unidade.getParametro()
+                unidade.getNome(), 
+                unidade.getSimbolo()
             ));
     }
 
@@ -49,8 +48,7 @@ public class UnidadeService {
         return new UnidadeResponse(
             unidade.getId(),
             unidade.getNome(),
-            unidade.getSimbolo(),
-            unidade.getParametro()
+            unidade.getSimbolo()
         );
     }
 
@@ -62,7 +60,7 @@ public class UnidadeService {
         unidade.setSimbolo(request.getSimbolo());
         unidade.setParametro(buildParametro(request.getNome(), request.getSimbolo()));
         Unidade saved = unidadeRepository.save(unidade);
-        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo(), saved.getParametro());
+        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo());
     }
 
     @Transactional

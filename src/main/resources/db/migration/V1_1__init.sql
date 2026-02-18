@@ -42,11 +42,19 @@ CREATE TABLE sensors (
     name VARCHAR(255) NOT NULL,
     sensor_type_id UUID NOT NULL,
     description TEXT,
-    status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(32) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     CONSTRAINT fk_sensors_sensor_type FOREIGN KEY (sensor_type_id) REFERENCES sensor_type(id)
 );
+
+CREATE OR REPLACE FUNCTION update_sensor_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;    
 
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
@@ -68,7 +76,7 @@ CREATE TABLE stations (
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     CONSTRAINT fk_stations_sensor FOREIGN KEY (sensor_id) REFERENCES sensors(id)
 );
 
@@ -83,8 +91,8 @@ CREATE TABLE readings (
     reading_value DOUBLE PRECISION NOT NULL,
     unit VARCHAR(64) NOT NULL,
     observed_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
     CONSTRAINT fk_readings_station FOREIGN KEY (station_id) REFERENCES stations(id)
 );
 

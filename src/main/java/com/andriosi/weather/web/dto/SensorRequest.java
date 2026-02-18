@@ -3,8 +3,6 @@ package com.andriosi.weather.web.dto;
 import java.util.List;
 import java.util.UUID;
 
-import com.andriosi.weather.domain.SensorType;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,12 +12,14 @@ public class SensorRequest {
     private String name;
 
     @NotNull
-    private SensorType type;
+    private UUID typeId;
 
     private String description;
-
+    
+    @NotNull
     private SensorStatus status;
-
+    
+    @NotNull
     private List<UUID> unidadeIds;
 
     public String getName() {
@@ -30,12 +30,12 @@ public class SensorRequest {
         this.name = name;
     }
 
-    public SensorType getType() {
-        return type;
+    public UUID getTypeId() {
+        return typeId;
     }
 
-    public void setType(SensorType type) {
-        this.type = type;
+    public void setTypeId(UUID typeId) {
+        this.typeId = typeId;
     }
     
     public List<UUID> getUnidadeIds() {

@@ -1,8 +1,6 @@
 package com.andriosi.weather.web;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.core.io.Resource;
@@ -25,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.andriosi.weather.service.SensorService;
+import com.andriosi.weather.web.dto.SensorFileResponse;
 import com.andriosi.weather.web.dto.SensorRequest;
 import com.andriosi.weather.web.dto.SensorResponse;
 
@@ -38,6 +37,12 @@ public class SensorController {
 
     public SensorController(SensorService sensorService) {
         this.sensorService = sensorService;
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping
+    public List<SensorResponse> getAllSensors() {
+        return sensorService.getAll();
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
@@ -74,7 +79,7 @@ public class SensorController {
 
         SensorRequest resolved = requireRequestPart(request);
         return sensorService.update(id, resolved, image, files);
-    } 
+    }
 
     private SensorRequest requireRequestPart(SensorRequest request) {
         if (request != null) {
@@ -85,12 +90,38 @@ public class SensorController {
                 "Missing multipart part 'data'"
         );
     }
-
+    // Buscar sensor com arquivos
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
-    @DeleteMapping(path = "/{sensorId}/files/{fileId}")
-    public ResponseEntity<Void> deleteFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
-        sensorService.deleteFile(sensorId, fileId);
+    @GetMapping("/{sensorId}")
+    public SensorResponse getSensorWithFiles(@PathVariable UUID sensorId) {
+        return sensorService.getSensorWithFiles(sensorId);
+    }
+   
+    // Deletar sensor e todos os arquivos
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @DeleteMapping("/{sensorId}")
+    public ResponseEntity<Void> deleteSensor(@PathVariable UUID sensorId) {
+        sensorService.deleteSensor(sensorId);
         return ResponseEntity.noContent().build();
+    }
+
+    // Download de arquivo binário
+    @GetMapping("/{sensorId}/files/{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
+        // Busca o arquivo e metadados
+        SensorFileResponse fileData = sensorService.getFile(sensorId, fileId);
+        Resource resource = sensorService.getFileResource(sensorId, fileId);
+        System.out.println("FileData: " + fileData);
+        System.out.println("Resource exists: " + (resource != null && resource.exists()));
+        
+        if (resource == null || !resource.exists()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo não encontrado");
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(fileData.getOriginalName()).build().toString())
+                .contentType(MediaType.parseMediaType(fileData.getContentType()))
+                .contentLength(fileData.getSize())
+                .body(resource);
     }
 
 }

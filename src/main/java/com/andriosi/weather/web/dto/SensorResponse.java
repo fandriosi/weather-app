@@ -3,16 +3,19 @@ package com.andriosi.weather.web.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
 import com.andriosi.weather.domain.SensorType;
+import com.andriosi.weather.domain.SensorTypeEntity;
 
 public class SensorResponse {
 
     private UUID id;
+    private String name;
     private String description;
-    private SensorType type;
+    private SensorTypeEntity type;
     private SensorStatus status;
+    private List<UnidadeResponse> unidades;
     private ImageData image;
-    private List<UUID> unidadesIds;
     private List<FileData> files;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -20,20 +23,22 @@ public class SensorResponse {
     // Construtor completo
     public SensorResponse(
             UUID id,
+            String name,
             String description,
-            SensorType type,
+            SensorTypeEntity type,
             SensorStatus status,
-            List<UUID> unidadesIds,
+            List<UnidadeResponse> unidades,
             ImageData image,
             List<FileData> files,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
         this.id = id;
+        this.name = name;
         this.description = description;
         this.type = type;
         this.status = status;
         this.image = image;
-        this.unidadesIds = unidadesIds;
+        this.unidades = unidades;
         this.files = files;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -71,6 +76,14 @@ public class SensorResponse {
         this.id = id;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -79,11 +92,11 @@ public class SensorResponse {
         this.description = description;
     }
 
-    public SensorType getType() {
+    public SensorTypeEntity getType() {
         return type;
     }
 
-    public void setType(SensorType type) {
+    public void setType(SensorTypeEntity type) {
         this.type = type;
     }
 
@@ -111,12 +124,12 @@ public class SensorResponse {
         this.files = files;
     }
 
-    public List<UUID> getUnidadesIds() {
-        return unidadesIds;
+    public List<UnidadeResponse> getUnidades() {
+        return unidades;
     }
 
-    public void setUnidadesIds(List<UUID> unidadesIds) {
-        this.unidadesIds = unidadesIds;
+    public void setUnidades(List<UnidadeResponse> unidades) {
+        this.unidades = unidades;
     }
 
     public LocalDateTime getCreatedAt() {
