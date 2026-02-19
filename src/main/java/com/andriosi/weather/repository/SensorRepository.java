@@ -11,6 +11,10 @@ public interface SensorRepository extends JpaRepository<Sensor, UUID> {
 
     @Query("SELECT DISTINCT s FROM Sensor s JOIN FETCH s.type LEFT JOIN FETCH s.unidades")
     List<Sensor> findAllWithType();
+
     @Query("SELECT s FROM Sensor s JOIN FETCH s.type LEFT JOIN FETCH s.unidades WHERE s.id = :id")
     Sensor findByIdWithType(UUID id);
+
+    @Query("SELECT s FROM Sensor s JOIN FETCH s.type LEFT JOIN FETCH s.unidades")
+    List<Sensor> findAllWithTypeAndUnidades();
 }

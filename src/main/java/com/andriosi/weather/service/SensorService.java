@@ -1,26 +1,5 @@
 package com.andriosi.weather.service;
 
-import com.andriosi.weather.domain.Sensor;
-import com.andriosi.weather.domain.SensorFile;
-import com.andriosi.weather.domain.SensorType;
-import com.andriosi.weather.domain.SensorTypeEntity;
-import com.andriosi.weather.domain.Unidade;
-import com.andriosi.weather.repository.SensorRepository;
-import com.andriosi.weather.repository.SensorFileRepository;
-import com.andriosi.weather.repository.SensorTypeRepository;
-import com.andriosi.weather.repository.UnidadeRepository;
-import com.andriosi.weather.service.mapper.SensorFileMapper;
-import com.andriosi.weather.storage.FileStorageService;
-import com.andriosi.weather.storage.StoredFileInfo;
-import com.andriosi.weather.web.dto.SensorRequest;
-import com.andriosi.weather.web.dto.SensorFileResponse;
-import com.andriosi.weather.web.dto.SensorResponse;
-import org.springframework.core.io.Resource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +9,30 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.andriosi.weather.domain.Sensor;
+import com.andriosi.weather.domain.SensorFile;
+import com.andriosi.weather.domain.SensorTypeEntity;
+import com.andriosi.weather.domain.Unidade;
+import com.andriosi.weather.exeception.ResourceNotFoundException;
+import com.andriosi.weather.repository.SensorFileRepository;
+import com.andriosi.weather.repository.SensorRepository;
+import com.andriosi.weather.repository.SensorTypeRepository;
+import com.andriosi.weather.repository.UnidadeRepository;
+import com.andriosi.weather.service.mapper.SensorFileMapper;
+import com.andriosi.weather.storage.FileStorageService;
+import com.andriosi.weather.storage.StoredFileInfo;
+import com.andriosi.weather.web.dto.SensorFileResponse;
+import com.andriosi.weather.web.dto.SensorRequest;
+import com.andriosi.weather.web.dto.SensorResponse;
+import com.andriosi.weather.web.dto.SensorTypeResponse;
+import com.andriosi.weather.web.dto.UnidadeResponse;
 
 @Service
 public class SensorService {
@@ -84,7 +84,7 @@ public class SensorService {
     @Transactional
     public SensorResponse update(UUID sensorId, SensorRequest request, MultipartFile image, List<MultipartFile> files) {
         Sensor sensor = sensorRepository.findById(sensorId)
-                .orElseThrow(() -> new IllegalArgumentException("Sensor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"));
 
         applyRequest(sensor, request);
 
@@ -108,7 +108,7 @@ public class SensorService {
         entity.setStorageType(info.getStorageType());
         entity.setStorageKey(info.getStorageKey());
         entity.setStorageUrl(info.getStorageUrl());
-        entity.setCreatedAt(Instant.now());
+        entity.setCreatedAt(LocalDateTime.now());
         entity.setIsImage(isImage);
         return entity;
     }
@@ -130,6 +130,16 @@ public class SensorService {
         return result;
     }
 
+    private List<UnidadeResponse> toUnidadeResponses(List<Unidade> unidades) {
+        return unidades.stream()
+                .map(unidade -> new UnidadeResponse(
+                unidade.getId(),
+                unidade.getNome(),
+                unidade.getSimbolo()
+        ))
+                .toList();
+    }
+
     private void applyUnidades(SensorRequest request, Sensor sensor) {
         List<UUID> unidadeIds = request.getUnidadeIds();
         if (unidadeIds == null || unidadeIds.isEmpty()) {
@@ -138,19 +148,18 @@ public class SensorService {
 
         List<Unidade> unidades = unidadeRepository.findAllById(unidadeIds);
         if (unidades.size() != unidadeIds.size()) {
-            throw new IllegalArgumentException("One or more unidades not found");
+            throw new ResourceNotFoundException("Uma ou mais unidades não encontradas");
         }
         sensor.setUnidades(unidades);
     }
 
-    private List<UUID> toUnidadeIds(Sensor sensor) {
-        return sensor.getUnidades().stream()
-                .map(Unidade::getId)
-                .toList();
-    }
-
     private SensorResponse toResponse(Sensor sensor) {
-        List<SensorFile> allFiles = sensorFileRepository.findBySensorId(sensor.getId());
+        Sensor sensorReflesh = sensorRepository.findByIdWithType(sensor.getId());
+        if (sensorReflesh == null) {
+            throw new ResourceNotFoundException("Sensor não encontrado");
+        }
+
+        List<SensorFile> allFiles = sensorFileRepository.findBySensorId(sensorReflesh.getId());
 
         var partition = allFiles.stream()
                 .collect(Collectors.partitioningBy(SensorFile::getIsImage));
@@ -159,56 +168,64 @@ public class SensorService {
         List<SensorFile> regularFiles = partition.get(false);
 
         SensorResponse.ImageData imageData = imageFile
-                .map(file -> fileMapper.toImageData(file, sensor.getId()))
+                .map(file -> fileMapper.toImageData(file, sensorReflesh.getId()))
                 .orElse(null);
 
         List<SensorResponse.FileData> filesData = fileMapper.toFileDataList(
                 regularFiles,
-                sensor.getId()
+                sensorReflesh.getId()
         );
 
         return new SensorResponse(
-                sensor.getId(),
-                sensor.getDescription(),
-                toSensorType(sensor.getType()),
-                sensor.getStatus(),
-                toUnidadeIds(sensor),
+                sensorReflesh.getId(),
+                sensorReflesh.getName(),
+                sensorReflesh.getDescription(),
+                getTypeResponse(sensorReflesh),
+                sensorReflesh.getStatus(),
+                sensorReflesh.getUnidades().stream()
+                        .map(unidade -> new UnidadeResponse(
+                        unidade.getId(),
+                        unidade.getNome(),
+                        unidade.getSimbolo()
+                )).toList(),
                 imageData,
                 filesData,
-                toLocalDateTime(sensor.getCreatedAt()),
-                toLocalDateTime(sensor.getUpdatedAt())
+                sensorReflesh.getCreatedAt(),
+                sensorReflesh.getUpdatedAt()
         );
-
     }
 
-    private LocalDateTime toLocalDateTime(LocalDateTime createdAt) {
-        if (createdAt == null) {
-            return null;
+    private SensorTypeResponse getTypeResponse(Sensor sensor) {
+        // Conversão de SensorTypeEntity para SensorTypeResponse
+        SensorTypeResponse typeResponse = null;
+        if (sensor.getType() != null) {
+            typeResponse = new SensorTypeResponse(
+                    sensor.getType().getId(),
+                    sensor.getType().getName()
+            );
         }
-        return createdAt;
+        return typeResponse;
     }
 
     private void applyRequest(Sensor sensor, SensorRequest request) {
         sensor.setName(request.getName());
         sensor.setDescription(request.getDescription());
-        sensor.setType(resolveSensorType(request.getType()));
+        sensor.setType(resolveSensorType(request.getTypeId()));
         sensor.setStatus(request.getStatus());
+        if (sensor.getCreatedAt() != null) {
+            sensor.setUpdatedAt(LocalDateTime.now());
+        } else {
+            sensor.setCreatedAt(LocalDateTime.now());
+        }
         applyUnidades(request, sensor);
     }
 
-    private SensorTypeEntity resolveSensorType(SensorType type) {
+    private SensorTypeEntity resolveSensorType(UUID type) {
         if (type == null) {
             return null;
         }
-        return sensorTypeRepository.findByName(type.name())
-                .orElseThrow(() -> new IllegalArgumentException("SensorType not found: " + type.name()));
-    }
-
-    private SensorType toSensorType(SensorTypeEntity entity) {
-        if (entity == null || entity.getName() == null) {
-            return null;
-        }
-        return SensorType.valueOf(entity.getName());
+        return sensorTypeRepository.findById(type)
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo de sensor não encontrado: " + type));
     }
 
     private SensorFileResponse toFileResponse(SensorFile file) {
@@ -219,7 +236,9 @@ public class SensorService {
                 file.getSize(),
                 file.getStorageType(),
                 file.getStorageKey(),
-                file.getStorageUrl()
+                file.getStorageUrl(),
+                file.getIsImage(),
+                file.getCreatedAt()
         );
     }
 
@@ -252,8 +271,8 @@ public class SensorService {
     @Transactional
     public void deleteFile(UUID sensorId, UUID fileId) {
         SensorFile file = sensorFileRepository.findByIdAndSensorId(fileId, sensorId)
-                .orElseThrow(() -> new com.andriosi.weather.exeception.SensorFileNotFoundException(
-                String.format("File %s not found for sensor %s", fileId, sensorId)
+                .orElseThrow(() -> new com.andriosi.weather.exeception.ResourceNotFoundException(
+                String.format("Arquivo %s não encontrado para o sensor %s", fileId, sensorId)
         ));
 
         try {
@@ -290,12 +309,83 @@ public class SensorService {
     //Metédo que retorna o repoonse do sensor, com os arquivos associados, para ser usado no download do arquivo
     public SensorResponse getSensorWithFiles(UUID sensorId) {
         Sensor sensor = sensorRepository.findById(sensorId)
-                .orElseThrow(() -> new IllegalArgumentException("Sensor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"));
         return toResponse(sensor);
     }
 
     public void deleteSensor(UUID sensorId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteSensor'");
+        deleteAllFiles(sensorId);
+        sensorRepository.delete(
+                sensorRepository.findById(sensorId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Sensor não encontrado"))
+        );
     }
+
+    public Resource getFileResource(UUID sensorId, UUID fileId) {
+        SensorFile file = sensorFileRepository.findByIdAndSensorId(fileId, sensorId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                String.format("Arquivo %s não encontrado para o sensor %s", fileId, sensorId)
+        ));
+
+        return fileStorageService.getFile(file.getStorageKey(), file.getStorageType());
+    }
+
+    public SensorFileResponse getFile(UUID sensorId, UUID fileId) {
+        SensorFile file = sensorFileRepository.findByIdAndSensorId(fileId, sensorId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                String.format("Arquivo %s não encontrado para o sensor %s", fileId, sensorId)
+        ));
+        return toFileResponse(file);
+    }
+
+    public List<SensorResponse> getAll() {
+        List<Sensor> sensors = sensorRepository.findAllWithTypeAndUnidades();
+        Map<UUID, List<SensorFileResponse>> filesBySensorId = loadFilesBySensorId(sensors);
+
+        return sensors.stream()
+                .map(sensor -> {
+                    List<SensorFileResponse> files = filesBySensorId.getOrDefault(sensor.getId(), List.of());
+                    var partition = files.stream()
+                            .collect(Collectors.partitioningBy(SensorFileResponse::isImage));
+
+                    Optional<SensorFileResponse> imageFile = partition.get(true).stream().findFirst();
+                    List<SensorFileResponse> regularFiles = partition.get(false);
+
+                    SensorResponse.ImageData imageData = imageFile
+                            .map(file -> new SensorResponse.ImageData(
+                            file.id(),
+                            file.storageUrl(),
+                            file.originalName(),
+                            file.contentType(),
+                            file.size(),
+                            file.createdAt() // Use getCreatedAt() for image
+                    ))
+                            .orElse(null);
+
+                    List<SensorResponse.FileData> filesData = regularFiles.stream()
+                            .map(file -> new SensorResponse.FileData(
+                            file.id(),
+                            file.storageUrl(),
+                            file.originalName(),
+                            file.contentType(),
+                            file.size(),
+                            file.createdAt() // Use getCreatedAt() for file as well
+                    ))
+                            .toList();
+
+                    return new SensorResponse(
+                            sensor.getId(),
+                            sensor.getName(),
+                            sensor.getDescription(),
+                            getTypeResponse(sensor),
+                            sensor.getStatus(),
+                            toUnidadeResponses(sensor.getUnidades()),
+                            imageData,
+                            filesData,
+                            sensor.getCreatedAt(),
+                            sensor.getUpdatedAt()
+                    );
+                }).toList();
+    }
+
 }

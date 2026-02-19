@@ -24,9 +24,9 @@ public class UnidadeService {
     @Transactional
     public UnidadeResponse create(UnidadeRequest request) {
         Unidade unidade = new Unidade();
-        unidade.setNome(request.getNome());
-        unidade.setSimbolo(request.getSimbolo());
-        unidade.setParametro(buildParametro(request.getNome(), request.getSimbolo()));
+        unidade.setNome(request.nome());
+        unidade.setSimbolo(request.simbolo());
+        unidade.setParametro(buildParametro(request.nome(), request.simbolo()));
         Unidade saved = unidadeRepository.save(unidade);
         return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo()); 
     }
@@ -56,9 +56,9 @@ public class UnidadeService {
     public UnidadeResponse update(UUID id, UnidadeRequest request) {
         Unidade unidade = unidadeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
-        unidade.setNome(request.getNome());
-        unidade.setSimbolo(request.getSimbolo());
-        unidade.setParametro(buildParametro(request.getNome(), request.getSimbolo()));
+        unidade.setNome(request.nome());
+        unidade.setSimbolo(request.simbolo());
+        unidade.setParametro(buildParametro(request.nome(), request.simbolo()));
         Unidade saved = unidadeRepository.save(unidade);
         return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo());
     }

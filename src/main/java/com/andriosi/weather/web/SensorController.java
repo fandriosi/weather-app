@@ -87,16 +87,17 @@ public class SensorController {
         }
         throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "Missing multipart part 'data'"
+                "Parte multipart 'data' ausente"
         );
     }
+
     // Buscar sensor com arquivos
     @PreAuthorize("hasAnyRole('ADMIN','OPERATOR')")
     @GetMapping("/{sensorId}")
     public SensorResponse getSensorWithFiles(@PathVariable UUID sensorId) {
         return sensorService.getSensorWithFiles(sensorId);
     }
-   
+
     // Deletar sensor e todos os arquivos
     @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{sensorId}")
@@ -105,22 +106,22 @@ public class SensorController {
         return ResponseEntity.noContent().build();
     }
 
-    // Download de arquivo binário
     @GetMapping("/{sensorId}/files/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable UUID sensorId, @PathVariable UUID fileId) {
-        // Busca o arquivo e metadados
         SensorFileResponse fileData = sensorService.getFile(sensorId, fileId);
+        if (fileData == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo não encontrado");
+        }
         Resource resource = sensorService.getFileResource(sensorId, fileId);
-        System.out.println("FileData: " + fileData);
-        System.out.println("Resource exists: " + (resource != null && resource.exists()));
-        
         if (resource == null || !resource.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo não encontrado");
         }
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(fileData.getOriginalName()).build().toString())
-                .contentType(MediaType.parseMediaType(fileData.getContentType()))
-                .contentLength(fileData.getSize())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(fileData.originalName())
+                        .build().toString())
+                .contentType(MediaType.parseMediaType(fileData.contentType()))
+                .contentLength(fileData.size())
                 .body(resource);
     }
 

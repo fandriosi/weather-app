@@ -29,7 +29,7 @@ public class AuthController {
     private final UserRepository userRepository;
 
     public AuthController(AuthenticationManager authenticationManager, JwtService jwtService,
-                          UserRepository userRepository) {
+            UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -38,22 +38,22 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         AppUser user = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
         String token = jwtService.generateToken(userDetails);
         Instant expiresAt = jwtService.getExpiration(token);
         String role = user.getRole().getName().name().toLowerCase();
 
         AuthUserResponse payload = new AuthUserResponse(
-            String.valueOf(user.getId()),
-            user.getUsername(),
-            user.getName(),
-            user.getEmail(),
-            role
+                String.valueOf(user.getId()),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail(),
+                role
         );
 
         return new AuthResponse(token, payload, expiresAt);

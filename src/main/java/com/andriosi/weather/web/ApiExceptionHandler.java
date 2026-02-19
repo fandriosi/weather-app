@@ -17,27 +17,27 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestPartException.class)
     public ResponseEntity<ProblemDetail> handleMissingPart(MissingServletRequestPartException ex,
-                                                          HttpServletRequest request) {
+            HttpServletRequest request) {
         return buildResponse(
-            HttpStatus.BAD_REQUEST,
-            "Missing multipart part '" + ex.getRequestPartName() + "'",
-            request
+                HttpStatus.BAD_REQUEST,
+                "Parte multipart ausente: '" + ex.getRequestPartName() + "'",
+                request
         );
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex,
-                                                                    HttpServletRequest request) {
+            HttpServletRequest request) {
         String contentType = ex.getContentType() == null ? "" : ex.getContentType().toString();
         String message = contentType.isEmpty()
-            ? "Content-Type is not supported"
-            : "Content-Type '" + contentType + "' is not supported";
+                ? "Content-Type não é suportado"
+                : "Content-Type '" + contentType + "' não é suportado";
         return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, message, request);
     }
 
     private ResponseEntity<ProblemDetail> buildResponse(HttpStatus status,
-                                                       String message,
-                                                       HttpServletRequest request) {
+            String message,
+            HttpServletRequest request) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, message);
         detail.setTitle(status.getReasonPhrase());
         detail.setType(URI.create("about:blank"));

@@ -23,7 +23,7 @@ public class SensorFileMapper {
                 file.getOriginalName(),
                 file.getContentType(),
                 file.getSize(),
-                toLocalDateTime(file.getCreatedAt())
+                file.getCreatedAt()
         );
     }
 
@@ -33,7 +33,7 @@ public class SensorFileMapper {
                 buildFileUrl(sensorId, file.getId()), file.getOriginalName(),
                 file.getContentType(),
                 file.getSize(),
-                toLocalDateTime(file.getCreatedAt())
+                file.getCreatedAt()
         );
     }
 
@@ -48,12 +48,5 @@ public class SensorFileMapper {
 
     private String buildFileUrl(UUID sensorId, UUID fileId) {
         return String.format("/api/sensors/%s/files/%s", sensorId, fileId);
-    }
-
-    private LocalDateTime toLocalDateTime(java.time.Instant instant) {
-        if (instant == null) {
-            return null;
-        }
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

@@ -22,9 +22,9 @@ public class StationService {
     @Transactional
     public StationResponse create(StationRequest request) {
         Station station = new Station();
-        station.setName(request.getName());
-        station.setLatitude(request.getLatitude());
-        station.setLongitude(request.getLongitude());
+        station.setName(request.name());
+        station.setLatitude(request.latitude());
+        station.setLongitude(request.longitude());
         Station saved = stationRepository.save(station);
         return new StationResponse(saved.getId(), saved.getName(), saved.getLatitude(), saved.getLongitude());
     }

@@ -31,10 +31,10 @@ public class IngestController {
     @PostMapping("/mqtt-sim")
     public ReadingResponse ingestMqttSim(@Valid @RequestBody MqttSimPayload payload) {
         ReadingIngestRequest request = new ReadingIngestRequest();
-        request.setStationId(payload.getStationId());
-        request.setValue(payload.getValue());
-        request.setUnit(payload.getUnit());
-        request.setObservedAt(payload.getObservedAt());
+        request.setStationId(payload.stationId());
+        request.setValue(payload.value());
+        request.setUnit(payload.unit());
+        request.setObservedAt(payload.observedAt());
         return readingIngestPort.ingest(request);
     }
 }

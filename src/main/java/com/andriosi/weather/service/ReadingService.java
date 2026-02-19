@@ -45,11 +45,11 @@ public class ReadingService implements ReadingIngestPort {
     public List<ReadingResponse> listByStation(UUID stationId) {
         return readingRepository.findByStationIdOrderByObservedAtDesc(stationId).stream()
             .map(reading -> new ReadingResponse(
-                reading.getId(),
+                reading.id(),
                 stationId,
-                reading.getValue(),
-                reading.getUnit(),
-                reading.getObservedAt()
+                reading.value(),
+                reading.unit(),
+                reading.observedAt()
             ))
             .toList();
     }

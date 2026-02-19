@@ -12,6 +12,6 @@ public class RestExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleIllegalArgument(IllegalArgumentException ex) {
-        return Map.of("error", ex.getMessage());
+        return Map.of("erro", ex.getMessage());
     }
 }

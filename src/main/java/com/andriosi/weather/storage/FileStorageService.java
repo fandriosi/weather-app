@@ -67,7 +67,7 @@ public class FileStorageService {
         Path baseDir = Paths.get(basePath).toAbsolutePath().normalize();
         Path targetPath = baseDir.resolve(storageKey).normalize();
         if (!targetPath.startsWith(baseDir)) {
-            throw new IllegalArgumentException("Invalid storage key");
+            throw new IllegalArgumentException("Chave de armazenamento inválida");
         }
         return new PathResource(targetPath);
     }
@@ -76,8 +76,8 @@ public class FileStorageService {
             String contentType,
             String originalName) {
         StorageProperties.S3 s3 = properties.getS3();
-        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
-        String region = requireValue(s3.getRegion(), "S3 region is required");
+        String bucket = requireValue(s3.getBucket(), "Bucket S3 é obrigatório");
+        String region = requireValue(s3.getRegion(), "Região S3 é obrigatória");
         String disposition = buildContentDisposition(originalName);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -117,7 +117,7 @@ public class FileStorageService {
                     Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             } catch (IOException ex) {
-                throw new IllegalStateException("Failed to store file locally", ex);
+                throw new IllegalStateException("Falha ao salvar arquivo localmente", ex);
             }
 
             String storageKey = prefix + "/" + fileName;
@@ -136,7 +136,7 @@ public class FileStorageService {
 
     public void deleteFile(String storageKey, StorageType storageType) {
         if (storageKey == null || storageKey.isEmpty()) {
-            throw new IllegalArgumentException("Storage key is required");
+            throw new IllegalArgumentException("Chave de armazenamento é obrigatória");
         }
 
         switch (storageType) {
@@ -149,7 +149,7 @@ public class FileStorageService {
 
     public Resource getFile(String storageKey, StorageType storageType) {
         if (storageKey == null || storageKey.isEmpty()) {
-            throw new IllegalArgumentException("Storage key is required");
+            throw new IllegalArgumentException("Chave de armazenamento é obrigatória");
         }
 
         return switch (storageType) {
@@ -164,34 +164,34 @@ public class FileStorageService {
 
     private Resource loadS3ObjectAsResource(StoredFileInfo fileInfo) {
         StorageProperties.S3 s3 = properties.getS3();
-        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
-        String region = requireValue(s3.getRegion(), "S3 region is required");
+        String bucket = requireValue(s3.getBucket(), "Bucket S3 é obrigatório");
+        String region = requireValue(s3.getRegion(), "Região S3 é obrigatória");
 
         try {
             ResponseBytes<GetObjectResponse> bytes = getS3Client(region)
                     .getObjectAsBytes(builder -> builder.bucket(bucket).key(fileInfo.getStorageKey()));
             return new ByteArrayResource(bytes.asByteArray());
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to load file from S3", ex);
+            throw new IllegalStateException("Falha ao carregar arquivo do S3", ex);
         }
     }
 
     private void deleteFromS3(String storageKey) {
         StorageProperties.S3 s3 = properties.getS3();
-        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
-        String region = requireValue(s3.getRegion(), "S3 region is required");
+        String bucket = requireValue(s3.getBucket(), "Bucket S3 é obrigatório");
+        String region = requireValue(s3.getRegion(), "Região S3 é obrigatória");
 
         try {
             getS3Client(region).deleteObject(builder -> builder.bucket(bucket).key(storageKey));
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to delete file from S3", ex);
+            throw new IllegalStateException("Falha ao deletar arquivo do S3", ex);
         }
     }
 
     private StoredFileInfo getS3FileInfo(String storageKey) {
         StorageProperties.S3 s3 = properties.getS3();
-        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
-        String region = requireValue(s3.getRegion(), "S3 region is required");
+        String bucket = requireValue(s3.getBucket(), "Bucket S3 é obrigatório");
+        String region = requireValue(s3.getRegion(), "Região S3 é obrigatória");
 
         try {
             var headObject = getS3Client(region).headObject(builder -> builder.bucket(bucket).key(storageKey));
@@ -205,26 +205,26 @@ public class FileStorageService {
                     headObject.contentLength()
             );
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to get file info from S3", ex);
+            throw new IllegalStateException("Falha ao obter informações do arquivo do S3", ex);
         }
     }
 
     private void deleteFromLocal(String storageKey) {
         StorageProperties.Local local = properties.getLocal();
-        String basePath = requireValue(local.getBasePath(), "Local base path is required");
+        String basePath = requireValue(local.getBasePath(), "Caminho base local é obrigatório");
         Path filePath = Paths.get(basePath).resolve(storageKey).normalize();
 
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException ex) {
-            throw new IllegalStateException("Failed to delete file from local storage", ex);
+            throw new IllegalStateException("Falha ao deletar arquivo do armazenamento local", ex);
         }
     }
 
     private List<StoredFileInfo> storeOnS3(UUID sensorId, List<MultipartFile> files) {
         StorageProperties.S3 s3 = properties.getS3();
-        String bucket = requireValue(s3.getBucket(), "S3 bucket is required");
-        String region = requireValue(s3.getRegion(), "S3 region is required");
+        String bucket = requireValue(s3.getBucket(), "Bucket S3 é obrigatório");
+        String region = requireValue(s3.getRegion(), "Região S3 é obrigatória");
         String prefix = normalizePrefix(s3.getPrefix());
         List<StoredFileInfo> results = new ArrayList<>();
         S3Client client = getS3Client(region);
@@ -249,7 +249,7 @@ public class FileStorageService {
             try (InputStream inputStream = file.getInputStream()) {
                 client.putObject(request, RequestBody.fromInputStream(inputStream, file.getSize()));
             } catch (IOException ex) {
-                throw new IllegalStateException("Failed to store file on S3", ex);
+                throw new IllegalStateException("Falha ao salvar arquivo no S3", ex);
             }
 
             results.add(new StoredFileInfo(
