@@ -6,7 +6,8 @@ public record StationResponse(
         UUID id,
         String name,
         Double latitude,
-        Double longitude
+        Double longitude,
+        SensorSResponse sensor
         ) {
 
 }

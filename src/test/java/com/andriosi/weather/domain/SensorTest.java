@@ -1,4 +1,4 @@
-package com.andriosi.weater.domain;
+package com.andriosi.weather.domain;
 
 import com.andriosi.weather.domain.Sensor;
 import com.andriosi.weather.domain.SensorTypeEntity;

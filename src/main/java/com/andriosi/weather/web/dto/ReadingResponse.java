@@ -1,14 +1,14 @@
 package com.andriosi.weather.web.dto;
+import java.time.LocalDateTime;
+import java.util.List;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.andriosi.weather.dto.Mensurement;
 
 public record ReadingResponse(
-        UUID id,
-        UUID stationId,
-        double value,
-        String unit,
-        Instant observedAt
-        ) {
+        String stationName,
+        Double latitude,
+        Double longitude,
+        LocalDateTime dataHora,
+        List<Mensurement> mensurements){
 
 }

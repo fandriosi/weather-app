@@ -28,34 +28,34 @@ public class UnidadeService {
         unidade.setSimbolo(request.simbolo());
         unidade.setParametro(buildParametro(request.nome(), request.simbolo()));
         Unidade saved = unidadeRepository.save(unidade);
-        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo()); 
+        return new UnidadeResponse(saved.getId(), saved.getNome(), saved.getSimbolo());
     }
 
     @Transactional(readOnly = true)
     public Page<UnidadeResponse> list(Pageable pageable) {
         return unidadeRepository.findAll(pageable)
-            .map(unidade -> new UnidadeResponse(
+                .map(unidade -> new UnidadeResponse(
                 unidade.getId(),
-                unidade.getNome(), 
+                unidade.getNome(),
                 unidade.getSimbolo()
-            ));
+        ));
     }
 
     @Transactional(readOnly = true)
     public UnidadeResponse get(UUID id) {
         Unidade unidade = unidadeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
         return new UnidadeResponse(
-            unidade.getId(),
-            unidade.getNome(),
-            unidade.getSimbolo()
+                unidade.getId(),
+                unidade.getNome(),
+                unidade.getSimbolo()
         );
     }
 
     @Transactional
     public UnidadeResponse update(UUID id, UnidadeRequest request) {
         Unidade unidade = unidadeRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
         unidade.setNome(request.nome());
         unidade.setSimbolo(request.simbolo());
         unidade.setParametro(buildParametro(request.nome(), request.simbolo()));
@@ -71,16 +71,26 @@ public class UnidadeService {
         unidadeRepository.deleteById(id);
     }
 
+    public UnidadeResponse findByParametro(String parametro) {
+        Unidade unidade = unidadeRepository.findByParametro(parametro)
+                .orElseThrow(() -> new IllegalArgumentException("Unidade not found"));
+        return new UnidadeResponse(
+                unidade.getId(),
+                unidade.getNome(),
+                unidade.getSimbolo()
+        );
+    }
+
     private String buildParametro(String nome, String simbolo) {
         if (nome == null && simbolo == null) {
             return null;
         }
         String base = ((nome == null ? "" : nome) + " " + (simbolo == null ? "" : simbolo)).trim();
         String normalized = Normalizer.normalize(base, Normalizer.Form.NFD)
-            .replaceAll("\\p{M}", "");
+                .replaceAll("\\p{M}", "");
         String underscored = normalized.toLowerCase(Locale.ROOT)
-            .replaceAll("[^a-z0-9]+", "_")
-            .replaceAll("^_+|_+$", "");
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
         return underscored;
     }
 }

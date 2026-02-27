@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import com.andriosi.weather.domain.Sensor;
 import com.andriosi.weather.domain.SensorFile;
 import com.andriosi.weather.domain.SensorTypeEntity;
 import com.andriosi.weather.domain.Unidade;
+import com.andriosi.weather.dto.SensorDTO;
 import com.andriosi.weather.exeception.ResourceNotFoundException;
 import com.andriosi.weather.repository.SensorFileRepository;
 import com.andriosi.weather.repository.SensorRepository;
@@ -36,6 +39,9 @@ import com.andriosi.weather.web.dto.UnidadeResponse;
 
 @Service
 public class SensorService {
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     private static final Logger log = LoggerFactory.getLogger(SensorService.class);
     private final SensorRepository sensorRepository;
@@ -58,6 +64,14 @@ public class SensorService {
         this.fileMapper = fileMapper;
         this.unidadeRepository = unidadeRepository;
         this.sensorTypeRepository = sensorTypeRepository;
+    }
+
+    public SensorDTO convertToDto(Sensor sensor) {
+        return modelMapper.map(sensor, SensorDTO.class);
+    }
+
+    public Sensor convertToEntity(SensorDTO sensorDTO) {
+        return modelMapper.map(sensorDTO, Sensor.class);
     }
 
     @Transactional
@@ -89,11 +103,6 @@ public class SensorService {
         applyRequest(sensor, request);
 
         Sensor saved = sensorRepository.save(sensor);
-
-        // Deleta arquivos existentes se há novos arquivos
-        if ((image != null && !image.isEmpty()) || (files != null && !files.isEmpty())) {
-            deleteAllFiles(sensorId);
-        }
 
         saveFiles(saved, image, files);
         return toResponse(saved);
