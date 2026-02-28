@@ -1,15 +1,18 @@
 package com.andriosi.weather.service;
 
-import com.andriosi.weather.dto.Mensurement;
+import com.andriosi.weather.dto.Reading;
 import com.andriosi.weather.web.dto.ReadingResponse;
 import com.andriosi.weather.web.dto.StationResponse;
 import com.andriosi.weather.web.dto.UnidadeResponse;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
-import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -19,70 +22,84 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+
 @Service
 public class DynamoDbReadingService {
 
     @Value("${app.dynamodb.table-name}")
     private String tableName;
 
-    private final DynamoDbClient dynamoDbClient;
+    private final DynamoDbEnhancedClient dynamoDbClient;
     private final UnidadeService unidadeService;
     private final StationService stationService;
     private final Map<String, StationResponse> stationCache = new HashMap<>();
     private final Map<String, String> unidadeCache = new HashMap<>();
 
-    public DynamoDbReadingService(DynamoDbClient dynamoDbClient,
+    public DynamoDbReadingService(DynamoDbEnhancedClient dynamoDbClient,
             UnidadeService unidadeService, StationService stationService) {
         this.dynamoDbClient = dynamoDbClient;
         this.unidadeService = unidadeService;
         this.stationService = stationService;
     }
 
-    public List<ReadingResponse> getMeteorologicalDataByStation() {
-        QueryRequest query = QueryRequest.builder()
-                .tableName(tableName)
-                .build();
-        QueryResponse response = dynamoDbClient.query(query);
+    public List<ReadingResponse> getMeteorologicalDataByStation(UUID stationId) {
+        String stationIdStr = stationId.toString();
+        List<ReadingResponse> responses = new ArrayList<>();
+        DynamoDbTable<Reading> table = dynamoDbClient.table(tableName, TableSchema.fromBean(Reading.class));
+        // Query pela partition key
+        QueryConditional query = QueryConditional.keyEqualTo(Key.builder().partitionValue(stationIdStr).build());
+        PageIterable<Reading> results = table.query(query);
 
-        Map<String, ReadingResponse> stationMap = new HashMap<>();
+        populateReadingData(responses, stationIdStr, results);
+        return responses;
+    }
 
-        for (Map<String, AttributeValue> item : response.items()) {
-            String stationId = item.get("idEstacao").s();
-            StationResponse station = resolveStation(stationId);
-            long timestamp = Long.parseLong(item.get("timestamp").n());
-            LocalDateTime data = LocalDateTime.ofEpochSecond(timestamp, 0, ZoneOffset.UTC);
+    public List<ReadingResponse> getAllMeteorologicalData() {
+        List<ReadingResponse> allResponses = new ArrayList<>();
+        List<String> stationIds = stationService.getAllIds();
+        DynamoDbTable<Reading> table = dynamoDbClient.table(tableName, TableSchema.fromBean(Reading.class));
+        for (String id : stationIds) {
+            QueryConditional query = QueryConditional.keyEqualTo(Key.builder()
+                    .partitionValue(id).build());
+
+            PageIterable<Reading> results = table.query(r -> r
+                    .queryConditional(query)
+                    .scanIndexForward(false) // Mais recente primeiro
+                    .limit(1)
+            );
+
+            populateReadingData(allResponses, id, results);
+        }
+        return allResponses;
+    }
+
+    private void populateReadingData(List<ReadingResponse> allResponses, String id, PageIterable<Reading> results) {
+        for (Reading entity : results.items()) {
+            StationResponse station = resolveStation(id);
+            LocalDateTime data = LocalDateTime.ofEpochSecond(entity.getTimestamp(), 0, ZoneOffset.UTC);
             if (station == null) {
                 continue;
             }
 
-            ReadingResponse stationData = stationMap.computeIfAbsent(stationId, id
-                    -> new ReadingResponse(
-                            station.name(),
-                            station.latitude(),
-                            station.longitude(),
-                            data,
-                            new ArrayList<>())
-            );
-
-            // Percorre todos os parâmetros, exceto idEstacao e timestamp
-            for (Map.Entry<String, AttributeValue> entry : item.entrySet()) {
-                String key = entry.getKey();
-                if (key.equals("idEstacao") || key.equals("timestamp")) {
-                    continue;
-                }
-                String nomeParametro = resolveUnidade(key);
-                if (nomeParametro != null && entry.getValue().n() != null) {
-                    Double valor = Double.valueOf(entry.getValue().n());
-                    stationData.mensurements().add(new Mensurement(nomeParametro, valor));
-                }else if (nomeParametro == null && entry.getValue().s() != null) {
-                    // Caso o valor seja uma string, tentamos converter para double
-                    Double valor = Double.valueOf(entry.getValue().n());
-                    stationData.mensurements().add(new Mensurement(key, valor));
+            Map<String, Double> mensurements = new HashMap<>();
+            for (Map.Entry<String, Double> entry : entity.getMensurements().entrySet()) {
+                String unidade = resolveUnidade(entry.getKey());
+                if (unidade != null) {
+                    mensurements.put(unidade, entry.getValue());
+                } else {
+                    mensurements.put(entry.getKey(), entry.getValue());
                 }
             }
+            ReadingResponse response = new ReadingResponse(
+                    station.name(),
+                    station.latitude(),
+                    station.longitude(),
+                    data,
+                    mensurements
+            );
+            allResponses.add(response);
         }
-        return new ArrayList<>(stationMap.values());
-
     }
 
     private String resolveUnidade(String parametro) {

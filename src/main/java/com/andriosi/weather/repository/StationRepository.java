@@ -20,4 +20,6 @@ public interface StationRepository extends JpaRepository<Station, UUID> {
     @Query("SELECT s FROM Station s LEFT JOIN FETCH s.sensor WHERE s.id = :id")
     @NonNull
     Optional<Station> findById(UUID id);
+    @Query("SELECT s.id FROM Station s")
+    List<String> findAllIds();
 }

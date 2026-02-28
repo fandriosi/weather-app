@@ -75,6 +75,11 @@ public class StationService {
         });
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getAllIds() {
+        return stationRepository.findAllIds();
+    }
+    
     @Transactional
     public boolean delete(UUID id) {
         if (stationRepository.existsById(id)) {
